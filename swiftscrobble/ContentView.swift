@@ -22,10 +22,6 @@ struct ContentView: View {
     @State var PlayingStatusSymbol = "pause.fill"
     @State var listen_time_string = "00:00 / ??:??"
     
-    
-    
-    @Environment(\.openURL) var openURL
-    
     let pub = NotificationCenter.default.publisher(for: NSNotification.Name(NCName))
     
     var body: some View {
@@ -91,11 +87,25 @@ struct ContentView: View {
                 }
             }
             
-            Button(action: {
-                OpenSettingsWindow()
-            }) {
-                Image(systemName: "gear")
-            }.padding()
+            HStack {
+                if authenticated == true {
+                    Button(action: {
+                        OpenLastFMProfile()
+                    }) {
+                        Image(systemName: "person")
+                    }.padding()
+                }
+                Button(action: {
+                    OpenSettingsWindow()
+                }) {
+                    Image(systemName: "gear")
+                }.padding()
+                Button(action: {
+                    QuitMyself()
+                }) {
+                    Image(systemName: "clear")
+                }.padding()
+            }
             
         }.onReceive(pub) {_ in
             self.authenticated = isLastFMInfoEntered()
@@ -177,7 +187,6 @@ struct SettingsView: View {
             }.padding()
             Button("Save") {
                 updatedSettings(username:self.username, password:self.password, apikey:self.apikey, apisecret:self.apisecret, scrobblingenabled: self.scrobbling_enabled)
-                
             }.padding().disabled(changed == false)
         }.frame(minWidth: 800, maxHeight: 800)
     }

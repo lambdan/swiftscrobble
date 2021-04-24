@@ -4,6 +4,17 @@
 //
 //  Created by David Silverlind on 2021-04-21.
 //
+/*
+ 
+ TODO:
+- Update menubar icon dynamically (play or pause icon)
+    - Maybe make it green when scrobbled or something?
+
+ BUGS:
+ - Settings window isn't focused when opened
+ 
+ 
+ */
 
 import SwiftUI
 import Cocoa
@@ -378,7 +389,6 @@ func isKeyPresentInUserDefaults(key: String) -> Bool { // https://smartcodezone.
 }
 
 func isLastFMInfoEntered() -> Bool {
-    
     if s_username != "" && s_password != "" && s_apikey != "" && s_apisecret != "" {
         return true
     } else {
@@ -553,4 +563,15 @@ func OpenSettingsWindow() {
     windowRef.contentView = NSHostingView(rootView: SettingsView())
     windowRef.makeKeyAndOrderFront(windowRef)
     windowRef.isReleasedWhenClosed = false
+}
+
+func QuitMyself() {
+    NSApp.terminate(nil)
+}
+
+
+func OpenLastFMProfile() {
+    if let url = URL(string: "https://www.last.fm/user/" + s_username) {
+        NSWorkspace.shared.open(url)
+    }
 }
