@@ -252,6 +252,8 @@ func GetScrobbleProgress() -> Float {
         return 0
     } else if g_duration < 30 {
         return 0
+    } else if g_duration > 480 { // 4 minute trigger
+        return Float(time_listened/240) // 240 = 4 minutes
     } else {
         return Float(time_listened / (g_duration/2))
     }
@@ -277,7 +279,7 @@ func update_time_listened() {
     }
     
     // scrobble condtions met?
-    if g_duration >= 30 && time_listened >= (g_duration/2) && ScrobbleConditionsMet == false { //TODO : or if listen_time > 4 minutes
+    if g_duration >= 30 && time_listened >= (g_duration/2) && ScrobbleConditionsMet == false || g_duration > 480 && time_listened > 240 && ScrobbleConditionsMet == false {
         ScrobbleConditionsMet = true
         scrobble(artist: g_artist, title: g_title, album: g_album, unixtime: Date().timeIntervalSince1970)
     }
@@ -324,6 +326,8 @@ func get_scrobble_status() -> String {
         return "Song is too short"
     } else if ScrobbleConditionsMet == true {
         return scrobble_msg
+    } else if g_duration > 480 { // 4 mins condition
+        return "Scrobbles in " + secsToMMSS(secs: 240 - time_listened)
     } else {
         return "Scrobbles in " + secsToMMSS(secs: (g_duration/2) - time_listened)
     }
