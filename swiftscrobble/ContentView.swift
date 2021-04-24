@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @State var song_artist = "Artist"
     @State var song_title = "Title"
+    @State var song_album = "Album"
     @State var scrobble_status = "?"
     @State var MusicState = "stopped"
     @State var ScrobbleProgress: Float = 0.0
@@ -35,6 +36,7 @@ struct ContentView: View {
                     Image(systemName: PlayingStatusSymbol).font(.system(size: 30)).padding()
                         Text(song_title).fontWeight(.bold)
                         Text(song_artist)
+                        Text(song_album)
                         //Text(listen_time + " / " + duration)
                     
                     ProgressBar(value: $ScrobbleProgress, label: $scrobble_status, bgcolor: NSColor.systemGray, fillcolor: NSColor.systemRed).frame(height: 40).padding()
@@ -49,6 +51,7 @@ struct ContentView: View {
                     // This gets run when notification is sent
                     self.song_artist = get_artist()
                     self.song_title = get_title()
+                    self.song_album = get_album()
                     self.ScrobbleProgress = GetScrobbleProgress()
                     self.SongProgress = GetSongProgress()
                     self.scrobble_status = get_scrobble_status()

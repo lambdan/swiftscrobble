@@ -9,6 +9,7 @@ API_SECRET = base64.b64decode(sys.argv[4]).decode("utf8")
 USERNAME = base64.b64decode(sys.argv[5]).decode("utf8")
 PASSWORD = base64.b64decode(sys.argv[6]).decode("utf8")
 datestamp = float(base64.b64decode(sys.argv[7]).decode("utf8"))
+album = base64.b64decode(sys.argv[8]).decode("utf8")
 
 
 #print("in", sys.argv)
@@ -34,5 +35,9 @@ timestamp = int(datestamp)
 #print("Artist:", artist)
 #print("Title:", title)
 #confirm = input("OK?")
-network.scrobble(artist=artist, title=title, timestamp=timestamp)
-print("OK", end="")
+if album == "": # no album
+    network.scrobble(artist=artist, title=title, timestamp=timestamp)
+    print("OK (no album)")
+else: # album set
+    network.scrobble(artist=artist, title=title, timestamp=timestamp, album=album)
+    print("OK (with album)", end="")

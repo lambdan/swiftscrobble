@@ -21,6 +21,7 @@ let timer_inc = 0.1
 
 var g_artist = ""
 var g_title = ""
+var g_album = ""
 var g_duration = 0.0
 var g_state = "stopped" // paused or playing
 
@@ -129,6 +130,7 @@ func startMonitoring() {
                 
             var local_artist = ""
             var local_title = ""
+            var local_album = ""
             var local_duration = 0.0
             var local_playbackrate = 0.0
             var local_paused_at = 0.0
@@ -140,10 +142,10 @@ func startMonitoring() {
             if (information["kMRMediaRemoteNowPlayingInfoTitle"] != nil) {
                 local_title = information["kMRMediaRemoteNowPlayingInfoTitle"] as! String
             }
-            /*
+            
             if (information["kMRMediaRemoteNowPlayingInfoAlbum"] != nil) {
                 local_album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as! String
-            }*/
+            }
             
             if (information["kMRMediaRemoteNowPlayingInfoDuration"] != nil) {
                 local_duration = Double(information["kMRMediaRemoteNowPlayingInfoDuration"] as! NSNumber)
@@ -165,7 +167,7 @@ func startMonitoring() {
                 // send out data
                 if local_artist != "" && local_title != "" && local_duration > 0 {
                     // Should trigger when music player changes
-                    ChangeDetected(artist:local_artist, title:local_title, duration:local_duration, paused:local_paused_at, pbrate:local_playbackrate)
+                    ChangeDetected(artist:local_artist, title:local_title, album: local_album, duration:local_duration, paused:local_paused_at, pbrate:local_playbackrate)
                 } else if local_artist == "" && local_title != "" && local_duration > 0 {
                     // Should trigger when playing something in a web browser (like youtube)
                     print(Date(), "Youtube trigger?")
@@ -202,23 +204,24 @@ func newSong() {
     }
 }
 
-func ChangeDetected(artist: String, title: String, duration:Double, paused:Double, pbrate:Double) {
-    print("CD", artist, title, duration, paused, pbrate)
+func ChangeDetected(artist: String, title: String, album: String, duration:Double, paused:Double, pbrate:Double) {
+    print("CD", artist, title, album, duration, paused, pbrate)
     if pbrate == 0 {
         g_state = "paused"
     } else {
         g_state = "playing"
     }
     
-    let song_id = title+artist+String(duration)
+    let song_id = title+artist+album+String(duration)
     if song_id != last_song_id {
-        print("CD new song trigger", artist, title, duration)
+        print("CD new song trigger", artist, title, album, duration)
         newSong() // resets vals
         last_song_id = song_id
         
         g_artist = artist
         g_duration = duration
         g_title = title
+        g_album = album
     }
 
     if g_state == "paused" {
@@ -276,15 +279,15 @@ func update_time_listened() {
     // scrobble condtions met?
     if g_duration >= 30 && time_listened >= (g_duration/2) && ScrobbleConditionsMet == false { //TODO : or if listen_time > 4 minutes
         ScrobbleConditionsMet = true
-        scrobble(artist: g_artist, title: g_title, unixtime: Date().timeIntervalSince1970)
+        scrobble(artist: g_artist, title: g_title, album: g_album, unixtime: Date().timeIntervalSince1970)
     }
     
     //print("update time listened: ", time_listened)
     send_NC(text: "timer update")
 }
 
-func scrobble(artist: String, title: String, unixtime: Double) {
-    print("SCROBBLE:", artist, "-", title, unixtime)
+func scrobble(artist: String, title: String, album: String, unixtime: Double) {
+    print("SCROBBLE:", artist, "-", title, unixtime, album)
     
     if isScrobblingEnabled() == false {
         print("SCROBBLING DISABLED")
@@ -302,14 +305,14 @@ func scrobble(artist: String, title: String, unixtime: Double) {
     scrobble_msg = "Scrobbling..."
     send_NC(text: "scrobbling...")
     
-    let cmd = shell("python3 " + scrob_path + " \"" + Data(artist.utf8).base64EncodedString() + "\" \"" + Data(title.utf8).base64EncodedString() + "\" \"" + Data(s_apikey.utf8).base64EncodedString() + "\" \"" + Data(s_apisecret.utf8).base64EncodedString() + "\" \"" + Data(s_username.utf8).base64EncodedString() + "\" \"" + Data(s_password.utf8).base64EncodedString() + "\" \"" + Data(String(unixtime).utf8).base64EncodedString() + "\"")
-    if cmd == "OK" {
+    let cmd = shell("python3 " + scrob_path + " \"" + Data(artist.utf8).base64EncodedString() + "\" \"" + Data(title.utf8).base64EncodedString() + "\" \"" + Data(s_apikey.utf8).base64EncodedString() + "\" \"" + Data(s_apisecret.utf8).base64EncodedString() + "\" \"" + Data(s_username.utf8).base64EncodedString() + "\" \"" + Data(s_password.utf8).base64EncodedString() + "\" \"" + Data(String(unixtime).utf8).base64EncodedString() + "\" \"" + Data(String(album).utf8).base64EncodedString() + "\"")
+    if cmd.contains("OK") {
         scrobble_msg = "Scrobbled"
         print(Date(), "Scrobble Success")
     } else {
         scrobble_msg = "Scrobble failed"
         print(Date(), "Scrobble failed :(")
-        CacheScrobble(artist: artist, title: title, date: unixtime)
+        CacheScrobble(artist: artist, title: title, album: album, date: unixtime)
     }
     send_NC(text: "scrobbled")
 }
@@ -434,6 +437,10 @@ func get_title() -> String {
     return g_title
 }
 
+func get_album() -> String {
+    return g_album
+}
+
 func getNowPlayingNow() {
     let task = MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main, { (information) in
         
@@ -441,6 +448,7 @@ func getNowPlayingNow() {
         } else {
             var local_artist = ""
             var local_title = ""
+            var local_album = ""
             var local_duration = 0.0
             var local_playbackrate = 0.0
             var local_paused_at = 0.0
@@ -452,10 +460,10 @@ func getNowPlayingNow() {
             if (information["kMRMediaRemoteNowPlayingInfoTitle"] != nil) {
                 local_title = information["kMRMediaRemoteNowPlayingInfoTitle"] as! String
             }
-            /*
+            
             if (information["kMRMediaRemoteNowPlayingInfoAlbum"] != nil) {
-                album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as! String
-            }*/
+                local_album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as! String
+            }
             
             if (information["kMRMediaRemoteNowPlayingInfoDuration"] != nil) {
                local_duration = Double(information["kMRMediaRemoteNowPlayingInfoDuration"] as! NSNumber)
@@ -470,7 +478,7 @@ func getNowPlayingNow() {
             }
             
             if local_artist != "" && local_duration > 0 && local_title != "" {
-                ChangeDetected(artist: local_artist, title: local_title, duration: local_duration, paused: 0.0, pbrate: local_playbackrate)
+                ChangeDetected(artist: local_artist, title: local_title, album: local_album, duration: local_duration, paused: 0.0, pbrate: local_playbackrate)
             }
             
             
@@ -489,8 +497,9 @@ func MusicStopped() {
     send_NC(text: "music stopped?")
 }
 
-func CacheScrobble(artist: String, title: String, date: Double) {
+func CacheScrobble(artist: String, title: String, album: String, date: Double) {
     // CacheScrobble for when scrobbling fails to retry at a later time
-    print("Cache Scrobble:", artist, title, date)
+    print("Cache Scrobble:", artist, title, album, date)
+    // TODO implement (add song to an array, save array to UserDefaults, have menubar option to show cached scrobbles, have button to retry scrobbling them
     
 }
