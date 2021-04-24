@@ -78,36 +78,21 @@ func shell(_ command: String) -> String { // https://stackoverflow.com/a/5003505
 
 @main
 struct swiftscrobbleApp: App {
-    
-    
-    
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
-        
-        WindowGroup {
-            ContentView().onAppear(perform: {
-                
-                if !(isKeyPresentInUserDefaults(key: "apikey")) { // set up userdefaults if necessary
-                    initializeUserDefaults()
-                } else {
-                    // load them
-                    loadUserDefaults()
-                    
-                }
-                
-            }
-            )
+        /*WindowGroup {
+            ContentView()
+        }*/
+        Settings { // lol, hack to not show window on launch: https://www.reddit.com/r/SwiftUI/comments/hltt9a/is_it_possible_to_create_a_menubar_app_with/fx1hsi4/
+            EmptyView()
         }
-        Settings {
-            SettingsView()
-        }
+        /*
         WindowGroup("Preferences") {
             SettingsView().handlesExternalEvents(preferring: Set(arrayLiteral: "prefs"), allowing: Set(arrayLiteral: "*")) // activate existing window if exists
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "prefs")) // create new window if one doesn't exist
-        
+ */
     }
-    
-    
 }
 
 
@@ -393,6 +378,7 @@ func isKeyPresentInUserDefaults(key: String) -> Bool { // https://smartcodezone.
 }
 
 func isLastFMInfoEntered() -> Bool {
+    
     if s_username != "" && s_password != "" && s_apikey != "" && s_apisecret != "" {
         return true
     } else {
@@ -506,4 +492,65 @@ func CacheScrobble(artist: String, title: String, album: String, date: Double) {
     print("Cache Scrobble:", artist, title, album, date)
     // TODO implement (add song to an array, save array to UserDefaults, have menubar option to show cached scrobbles, have button to retry scrobbling them
     
+}
+
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    var popover = NSPopover.init()
+    var statusBarItem: NSStatusItem?
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        print("applicationdidfinishlaunching")
+        
+        if !(isKeyPresentInUserDefaults(key: "apikey")) { // set up userdefaults if necessary
+            initializeUserDefaults()
+        } else {
+            // load them
+            loadUserDefaults()
+            
+        }
+        
+        let contentView = ContentView()
+
+        // Set the SwiftUI's ContentView to the Popover's ContentViewController
+        popover.behavior = .transient // !!! - This does not seem to work in SwiftUI2.0 or macOS BigSur yet
+        popover.animates = true
+        popover.contentViewController = NSViewController()
+        popover.contentViewController?.view = NSHostingView(rootView: contentView)
+        statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusBarItem?.button?.image = NSImage(systemSymbolName: "play.fill", accessibilityDescription: nil)
+        statusBarItem?.button?.action = #selector(AppDelegate.togglePopover(_:))
+        self.popover.contentViewController?.view.window?.becomeKey()
+        
+        
+    }
+    @objc func showPopover(_ sender: AnyObject?) {
+        if let button = statusBarItem?.button {
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+//            !!! - displays the popover window with an offset in x in macOS BigSur.
+        }
+    }
+    @objc func closePopover(_ sender: AnyObject?) {
+        popover.performClose(sender)
+    }
+    @objc func togglePopover(_ sender: AnyObject?) {
+        if popover.isShown {
+            closePopover(sender)
+        } else {
+            showPopover(sender)
+        }
+    }
+}
+
+func OpenSettingsWindow() {
+    var windowRef: NSWindow
+    windowRef = NSWindow(
+            contentRect: NSRect(x: 100, y: 100, width: 100, height: 100),
+            styleMask: [.titled, .closable],
+            backing: .buffered, defer: false)
+    windowRef.title = "Settings"
+    windowRef.center()
+    windowRef.contentView = NSHostingView(rootView: SettingsView())
+    windowRef.makeKeyAndOrderFront(windowRef)
+    windowRef.isReleasedWhenClosed = false
 }

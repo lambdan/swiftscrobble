@@ -30,6 +30,9 @@ struct ContentView: View {
     
     var body: some View {
         Group {
+            
+
+                
             if authenticated == true && MusicState != "stopped" {
                 
                 VStack {
@@ -79,14 +82,20 @@ struct ContentView: View {
                 }
             } else {
                 VStack {
-                    Text("Last.fm info not entered. Open the Preferences window to enter them.")
-                    Button("Open Preferences") {
+                    Text("Last.fm info not entered. Open the Settings window to enter them.")
+                    /*Button("Open Preferences") {
                         if let url = URL(string: "swiftscrobble://prefs") {
                             openURL(url)
                         }
-                    }.padding()
+                    }.padding()*/
                 }
             }
+            
+            Button(action: {
+                OpenSettingsWindow()
+            }) {
+                Image(systemName: "gear")
+            }.padding()
             
         }.onReceive(pub) {_ in
             self.authenticated = isLastFMInfoEntered()
@@ -96,7 +105,7 @@ struct ContentView: View {
             
         
         .padding()
-        .frame(minWidth: 300, maxWidth: 300, minHeight: 200, maxHeight: 200)
+        .frame(minWidth: 300, maxWidth: 300, minHeight: 280, maxHeight: 280)
     }
 }
 
@@ -168,6 +177,7 @@ struct SettingsView: View {
             }.padding()
             Button("Save") {
                 updatedSettings(username:self.username, password:self.password, apikey:self.apikey, apisecret:self.apisecret, scrobblingenabled: self.scrobbling_enabled)
+                
             }.padding().disabled(changed == false)
         }.frame(minWidth: 800, maxHeight: 800)
     }
