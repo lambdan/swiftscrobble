@@ -6,11 +6,15 @@
 //
 /*
  
+
  TODO:
 - Update menubar icon dynamically (play or pause icon)
     - Maybe make it green when scrobbled or something?
-
+- Implement caching (so it can store scrobbles while offline)
+ 
  BUGS:
+ - Music sometimes stops being tracked (likely the else cause getting triggered when opening youtube or something)
+    - Maybe solution: check how many fields get set and prioritize the one with most fields?
  - Settings window isn't focused when opened
  
  
@@ -28,7 +32,7 @@ let preferences = UserDefaults.standard
 var registered = false // if remote monitor is registered
 var i = 0
 var timer = Timer()
-let timer_inc = 0.1
+let UpdateTimerFrequency = 1.0
 
 var g_artist = ""
 var g_title = ""
@@ -43,6 +47,7 @@ var last_state = ""
 var last_song_id = ""
 
 var time_listened = 0.0
+var last_timer_tick = 0.0
 var ScrobbleConditionsMet = false
 var scrobble_msg = ""
 
@@ -190,12 +195,13 @@ func startMonitoring() {
 func newSong() {
     print(Date(), "New song!")
     timer.invalidate()
+    last_timer_tick = Date().timeIntervalSince1970
     time_listened = 0
     paused_at = 0
     ScrobbleConditionsMet = false
     scrobble_msg = ""
     send_NC(text: "new song!")
-    timer = Timer.scheduledTimer(withTimeInterval: timer_inc, repeats: true) { timer in
+    timer = Timer.scheduledTimer(withTimeInterval: UpdateTimerFrequency, repeats: true) { timer in
         update_time_listened()
     }
 }
@@ -261,12 +267,12 @@ func GetSongProgress() -> Float {
 }
 
 func update_time_listened() {
-    
     if g_state == "paused" {
+        last_timer_tick = Date().timeIntervalSince1970 // Otherwise we will get the time you were paused added
         return
     }
     
-    time_listened = time_listened + timer_inc
+    time_listened = time_listened + (Date().timeIntervalSince1970 - last_timer_tick)
     
     // repeat?
     if time_listened >= g_duration {
@@ -275,13 +281,15 @@ func update_time_listened() {
     }
     
     // scrobble condtions met?
-    if g_duration >= 30 && time_listened >= (g_duration/2) && ScrobbleConditionsMet == false || g_duration > 480 && time_listened > 240 && ScrobbleConditionsMet == false {
-        ScrobbleConditionsMet = true
-        scrobble(artist: g_artist, title: g_title, album: g_album, unixtime: Date().timeIntervalSince1970)
+    if ScrobbleConditionsMet == false {
+        if g_duration >= 30 && time_listened >= (g_duration/2) || g_duration > 480 && time_listened > 240 {
+            ScrobbleConditionsMet = true
+            scrobble(artist: g_artist, title: g_title, album: g_album, unixtime: Date().timeIntervalSince1970)
+        }
     }
     
-    //print("update time listened: ", time_listened)
     send_NC(text: "timer update")
+    last_timer_tick = Date().timeIntervalSince1970
 }
 
 func scrobble(artist: String, title: String, album: String, unixtime: Double) {
