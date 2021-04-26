@@ -117,54 +117,54 @@ struct swiftscrobbleApp: App {
 
 func startMonitoring() {
     if registered == false {
-    MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
-    
-    NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "kMRMediaRemoteNowPlayingInfoDidChangeNotification"), object: nil, queue: nil) { (notification) in
+        MRMediaRemoteRegisterForNowPlayingNotifications(DispatchQueue.main)
+        
+        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "kMRMediaRemoteNowPlayingInfoDidChangeNotification"), object: nil, queue: nil) { (notification) in
             //print(notification)
             MRMediaRemoteGetNowPlayingInfo(DispatchQueue.main, { (information) in
-            //print(i, information)
-            if i > 2 {
-                // because we get 3 notifications for some reason? TODO
-                i = 0
-                //return
-            }
+                //print(i, information)
+                if i > 2 {
+                    // because we get 3 notifications for some reason? TODO
+                    i = 0
+                    //return
+                }
                 
-            var local_artist = ""
-            var local_title = ""
-            var local_album = ""
-            var local_duration = 0.0
-            var local_playbackrate = 0.0
-            var local_paused_at = 0.0
-            
-            if (information["kMRMediaRemoteNowPlayingInfoArtist"] != nil) {
-                local_artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as! String
-            }
-            
-            if (information["kMRMediaRemoteNowPlayingInfoTitle"] != nil) {
-                local_title = information["kMRMediaRemoteNowPlayingInfoTitle"] as! String
-            }
-            
-            if (information["kMRMediaRemoteNowPlayingInfoAlbum"] != nil) {
-                local_album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as! String
-            }
-            
-            if (information["kMRMediaRemoteNowPlayingInfoDuration"] != nil) {
-                local_duration = Double(information["kMRMediaRemoteNowPlayingInfoDuration"] as! NSNumber)
-            }
-            
-            if (information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] != nil) {
-                local_playbackrate = Double(information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as! NSNumber)
-            }
+                var local_artist = ""
+                var local_title = ""
+                var local_album = ""
+                var local_duration = 0.0
+                var local_playbackrate = 0.0
+                var local_paused_at = 0.0
                 
-            // kMRMediaRemoteNowPlayingApplicationDisplayNameUserInfoKey == player name
-            //print(i, information)
-            //print ("player:",information["kMRMediaRemoteNowPlayingApplicationDisplayNameUserInfoKey"])
+                if (information["kMRMediaRemoteNowPlayingInfoArtist"] != nil) {
+                    local_artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as! String
+                }
                 
-            if (information["kMRMediaRemoteNowPlayingInfoElapsedTime"] != nil) {
-                local_paused_at = Double(information["kMRMediaRemoteNowPlayingInfoElapsedTime"] as! NSNumber) // only updates when paused
-            }
-            
-            //if i == 0 {
+                if (information["kMRMediaRemoteNowPlayingInfoTitle"] != nil) {
+                    local_title = information["kMRMediaRemoteNowPlayingInfoTitle"] as! String
+                }
+                
+                if (information["kMRMediaRemoteNowPlayingInfoAlbum"] != nil) {
+                    local_album = information["kMRMediaRemoteNowPlayingInfoAlbum"] as! String
+                }
+                
+                if (information["kMRMediaRemoteNowPlayingInfoDuration"] != nil) {
+                    local_duration = Double(information["kMRMediaRemoteNowPlayingInfoDuration"] as! NSNumber)
+                }
+                
+                if (information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] != nil) {
+                    local_playbackrate = Double(information["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as! NSNumber)
+                }
+                
+                // kMRMediaRemoteNowPlayingApplicationDisplayNameUserInfoKey == player name
+                //print(i, information)
+                //print ("player:",information["kMRMediaRemoteNowPlayingApplicationDisplayNameUserInfoKey"])
+                
+                if (information["kMRMediaRemoteNowPlayingInfoElapsedTime"] != nil) {
+                    local_paused_at = Double(information["kMRMediaRemoteNowPlayingInfoElapsedTime"] as! NSNumber) // only updates when paused
+                }
+                
+                //if i == 0 {
                 // send out data
                 if local_artist != "" && local_title != "" && local_duration > 0 {
                     // Should trigger when music player changes
@@ -178,17 +178,18 @@ func startMonitoring() {
                     print(Date(), "ELSE TRIGGER")
                     MusicStopped()
                 }
-            //}
-            
-            // because we get 3 notifications for some reason
-            i = i + 1
-            
-        })
-    }
+                //}
+                
+                // because we get 3 notifications for some reason
+                i = i + 1
+                
+            })
+            // Decide here if we should update ChangeDetected (the youtube bug thing...)
+        }
         
-    
-    print("Registered")
-    registered = true
+        
+        print("Registered")
+        registered = true
     }
 }
 
@@ -213,6 +214,8 @@ func ChangeDetected(artist: String, title: String, album: String, duration:Doubl
     } else {
         g_state = "playing"
     }
+    
+    
     
     let song_id = title+artist+album+String(duration)
     if song_id != last_song_id {
