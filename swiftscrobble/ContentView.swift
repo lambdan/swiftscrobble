@@ -126,6 +126,7 @@ struct SettingsView: View {
     @State private var username = preferences.string(forKey: "username")!
     @State private var password = preferences.string(forKey: "password")!
     @State private var scrobbling_enabled = preferences.bool(forKey: "scrobbling enabled")
+    @State private var blacklisted_string = preferences.string(forKey: "blacklisted apps")!
     @State private var changed = false
     
     var body: some View {
@@ -133,6 +134,16 @@ struct SettingsView: View {
             HStack {
                 Text("Get your API keys here:")
                 Link("https://www.last.fm/api/account/create", destination: URL(string: "https://www.last.fm/api/account/create")!)
+            }.padding()
+            HStack {
+                Text("Blacklisted apps:")
+                TextField("", text: $blacklisted_string).onChange(of: blacklisted_string) { newvalue in
+                    if newvalue == preferences.string(forKey: "blacklisted apps") {
+                        changed = false
+                    } else {
+                        changed = true
+                    }
+                }
             }.padding()
             VStack {
                 HStack {
@@ -187,7 +198,7 @@ struct SettingsView: View {
                 
             }.padding()
             Button("Save") {
-                updatedSettings(username:self.username, password:self.password, apikey:self.apikey, apisecret:self.apisecret, scrobblingenabled: self.scrobbling_enabled)
+                updatedSettings(username:self.username, password:self.password, apikey:self.apikey, apisecret:self.apisecret, scrobblingenabled: self.scrobbling_enabled, blacklisted: self.blacklisted_string)
             }.padding().disabled(changed == false)
         }.frame(minWidth: 800, maxHeight: 800)
     }

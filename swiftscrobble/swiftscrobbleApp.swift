@@ -57,7 +57,7 @@ var s_apisecret = ""
 var s_username = ""
 var s_password = ""
 var s_scrobbling_enabled = false
-var blacklisted_apps = ["Safari", "Google Chrome"] // This needs to be a setting
+var s_blacklisted_apps = ""
 
 // disable menu bar items
 
@@ -118,7 +118,7 @@ struct swiftscrobbleApp: App {
 func NowPlayingInfoTrigger(notification: Notification) {
     let MusicPlayer = (notification.userInfo?["kMRMediaRemoteNowPlayingApplicationDisplayNameUserInfoKey"] ?? "") as! String
     
-    if blacklisted_apps.contains(MusicPlayer) {
+    if s_blacklisted_apps.contains(MusicPlayer) {
         print("NowPlayingInfoTrigger - ignoring blacklisted app:", MusicPlayer)
         return
     }
@@ -238,7 +238,7 @@ func ChangeDetected(artist: String, title: String, album: String, duration:Doubl
     
     let song_id = title+artist+album+String(duration)
     if song_id != last_song_id {
-        print("New song condition reached")
+        print("--> New song !!!")
         newSong() // resets vals
         last_song_id = song_id
 
@@ -246,6 +246,8 @@ func ChangeDetected(artist: String, title: String, album: String, duration:Doubl
         g_duration = duration
         g_title = title
         g_album = album
+    } else {
+        print("--> same song")
     }
 
     if g_state == "paused" {
@@ -374,12 +376,13 @@ func get_pbar_color() -> NSColor {
     
 }
 
-func updatedSettings(username: String, password: String, apikey: String, apisecret: String, scrobblingenabled: Bool) {
+func updatedSettings(username: String, password: String, apikey: String, apisecret: String, scrobblingenabled: Bool, blacklisted: String) {
     print("Saving settings")
     preferences.set(username, forKey: "username")
     preferences.set(password, forKey: "password")
     preferences.set(apikey, forKey: "apikey")
     preferences.set(apisecret, forKey: "apisecret")
+    preferences.set(blacklisted, forKey: "blacklisted apps")
     preferences.set(scrobblingenabled, forKey: "scrobbling enabled")
     loadUserDefaults()
 }
@@ -391,6 +394,7 @@ func initializeUserDefaults() {
     preferences.set("", forKey: "username")
     preferences.set("", forKey: "password")
     preferences.set(false, forKey: "scrobbling enabled")
+    preferences.set("Safari, Google Chrome", forKey: "blacklisted apps")
     print("Init ok")
     loadUserDefaults()
     
@@ -404,6 +408,14 @@ func loadUserDefaults() {
     s_apikey = preferences.string(forKey: "apikey")!
     s_apisecret = preferences.string(forKey: "apisecret")!
     s_scrobbling_enabled = preferences.bool(forKey: "scrobbling enabled")
+    
+    if isKeyPresentInUserDefaults(key: "blacklisted apps") == false {
+        print("adding default blacklisted apps to userdefaults")
+        preferences.set("Safari, Google Chrome", forKey: "blacklisted apps")
+    }
+    s_blacklisted_apps = preferences.string(forKey: "blacklisted apps")!
+    
+    
     
     
     if isLastFMInfoEntered() == true && registered == false {
@@ -610,4 +622,8 @@ func OpenLastFMProfile() {
 
 func get_player() -> String {
     return g_player
+}
+
+func get_blacklisted() -> String {
+    return s_blacklisted_apps
 }
