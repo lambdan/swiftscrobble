@@ -215,13 +215,21 @@ struct SettingsView: View {
 struct StatsView: View {
     @State private var songs_scrobbled = preferences.integer(forKey: "songs scrobbled")
     @State private var program_version = get_program_version()
+    @State private var reset_clicked = reset_button_times_clicked
     
     var body: some View {
         VStack {
             Text("swiftscrobble version " + program_version)
             Text("Scrobbles: " + String(songs_scrobbled)).padding()
-            Button("⚠️ Reset Everything and Quit ⚠️") {
-                resetDefaults()
+            VStack {
+                Button("⚠️ Reset Everything and Quit ⚠️") {
+                    self.reset_clicked = reset_button_times_clicked
+                    resetDefaults()
+                }
+                if reset_clicked > 0 {
+                    Text("click it " + String(9-reset_clicked) + " more time(s)")
+                }
+                
             }.padding()
         }.padding().frame(minWidth: 400, maxHeight: 400).padding()
     }

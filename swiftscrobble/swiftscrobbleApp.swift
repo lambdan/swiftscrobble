@@ -16,7 +16,7 @@
  - Music sometimes stops being tracked (likely the else cause getting triggered when opening youtube or something)
     - Maybe solution: check how many fields get set and prioritize the one with most fields?
     - This is somewhat fixed since implementing ignoring apps (opening youtube wont ruin your day atleast)
- - Settings window isn't focused when opened
+ - Settings (and Stats) window isn't focused when opened
  
  
  */
@@ -60,6 +60,8 @@ var s_password = ""
 var s_scrobbling_enabled = false
 var s_blacklisted_apps = ""
 var s_scrobbled_songs = 0
+
+var reset_button_times_clicked = 0
 
 // disable menu bar items
 
@@ -653,9 +655,15 @@ func get_program_version() -> String {
 }
 
 func resetDefaults() {
-    let dictionary = preferences.dictionaryRepresentation()
-    dictionary.keys.forEach { key in
-        preferences.removeObject(forKey: key)
+    reset_button_times_clicked += 1
+    print("reset button clicked:", reset_button_times_clicked)
+    if reset_button_times_clicked >= 10 {
+        print("RESET ALL AND QUIT")
+        let dictionary = preferences.dictionaryRepresentation()
+        dictionary.keys.forEach { key in
+            preferences.removeObject(forKey: key)
+        }
+        NSApp.terminate(nil)
+        
     }
-    NSApp.terminate(nil)
 }
