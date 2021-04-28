@@ -33,7 +33,11 @@ struct ContentView: View {
             if authenticated == true && MusicState != "stopped" {
                 
                 VStack {
-                    Image(systemName: PlayingStatusSymbol).font(.system(size: 30)).padding()
+                    HStack {
+                        Image(systemName: PlayingStatusSymbol).font(.system(size: 30)).padding()
+                        Text(player).padding()
+                    }
+                    
                         Text(song_title).fontWeight(.bold)
                         Text(song_artist)
                         Text(song_album)
@@ -45,8 +49,7 @@ struct ContentView: View {
                     
                     //Text("Scrobbling enabled: " + String(scrobbling_enabled))
                     //Text("Scrobbled: " + scrobble_status)
-                    Text("Music Player: " + player)
-                }.padding().onReceive(pub) {_ in
+                }.onReceive(pub) {_ in
                     //print(Date(), "UI got update request")
                     
                     // This gets run when notification is sent
@@ -81,16 +84,11 @@ struct ContentView: View {
                 }
             } else {
                 VStack {
-                    Text("Last.fm info not entered. Open the Settings window to enter them.")
-                    /*Button("Open Preferences") {
-                        if let url = URL(string: "swiftscrobble://prefs") {
-                            openURL(url)
-                        }
-                    }.padding()*/
+                    Text("Last.fm info not entered. Open Settings and enter them.")
                 }
             }
             
-            HStack {
+            HStack { // Buttons
                 if authenticated == true {
                     Button(action: {
                         OpenLastFMProfile()
@@ -118,7 +116,7 @@ struct ContentView: View {
             
         
         .padding()
-        .frame(minWidth: 300, maxWidth: 300, minHeight: 300, maxHeight: 300)
+        .frame(minWidth: 300, maxWidth: 300, minHeight: 280, maxHeight: 280)
     }
 }
 
