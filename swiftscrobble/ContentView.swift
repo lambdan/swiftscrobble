@@ -97,6 +97,11 @@ struct ContentView: View {
                     }.padding()
                 }
                 Button(action: {
+                    OpenStatsWindow()
+                }) {
+                    Image(systemName: "info.circle")
+                }.padding()
+                Button(action: {
                     OpenSettingsWindow()
                 }) {
                     Image(systemName: "gear")
@@ -204,6 +209,21 @@ struct SettingsView: View {
                 updatedSettings(username:self.username, password:self.password, apikey:self.apikey, apisecret:self.apisecret, scrobblingenabled: self.scrobbling_enabled, blacklisted: self.blacklisted_string)
             }.padding().disabled(changed == false)
         }.frame(minWidth: 800, maxHeight: 800).padding()
+    }
+}
+
+struct StatsView: View {
+    @State private var songs_scrobbled = preferences.integer(forKey: "songs scrobbled")
+    @State private var program_version = get_program_version()
+    
+    var body: some View {
+        VStack {
+            Text("swiftscrobble version " + program_version)
+            Text("Scrobbles: " + String(songs_scrobbled)).padding()
+            Button("⚠️ Reset Everything and Quit ⚠️") {
+                resetDefaults()
+            }.padding()
+        }.padding().frame(minWidth: 400, maxHeight: 400).padding()
     }
 }
 

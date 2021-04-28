@@ -15,6 +15,7 @@
  BUGS:
  - Music sometimes stops being tracked (likely the else cause getting triggered when opening youtube or something)
     - Maybe solution: check how many fields get set and prioritize the one with most fields?
+    - This is somewhat fixed since implementing ignoring apps (opening youtube wont ruin your day atleast)
  - Settings window isn't focused when opened
  
  
@@ -58,6 +59,7 @@ var s_username = ""
 var s_password = ""
 var s_scrobbling_enabled = false
 var s_blacklisted_apps = ""
+var s_scrobbled_songs = 0
 
 // disable menu bar items
 
@@ -137,8 +139,6 @@ func NowPlayingInfoTrigger(notification: Notification) {
         var local_playbackrate = 0.0
         var local_paused_at = 0.0
         
-        //print("HEY:", information["kMRMediaRemoteNowPlayingApplicationDisplayNameUserInfoKey"])
-        
         if (information["kMRMediaRemoteNowPlayingInfoArtist"] != nil) {
             local_artist = information["kMRMediaRemoteNowPlayingInfoArtist"] as! String
         }
@@ -163,16 +163,9 @@ func NowPlayingInfoTrigger(notification: Notification) {
             local_paused_at = Double(information["kMRMediaRemoteNowPlayingInfoElapsedTime"] as! NSNumber) // only updates when paused
         }
         
-        //if i == 0 {
-        // send out data
         if local_artist != "" && local_title != "" && local_duration > 0 && MusicPlayer != "" {
-            // Should trigger when music player changes
             ChangeDetected(artist:local_artist, title:local_title, album: local_album, duration:local_duration, paused:local_paused_at, pbrate:local_playbackrate, player:MusicPlayer)
-        }/* else if local_artist == "" && local_title != "" && local_duration > 0 {
-            // Should trigger when playing something in a web browser (like youtube)
-            print(Date(), "Youtube trigger?")
-            print(local_artist, local_title, local_duration, local_playbackrate)
-        }*/
+        }
     })
 }
 
@@ -340,6 +333,11 @@ func scrobble(artist: String, title: String, album: String, unixtime: Double) {
     if cmd.contains("OK") {
         scrobble_msg = "Scrobbled"
         print(Date(), "Scrobble Success")
+        
+        // Update scrobble counter
+        let new_total_scrobbles = preferences.integer(forKey: "songs scrobbled") + 1
+        preferences.set(new_total_scrobbles, forKey: "songs scrobbled")
+        
     } else {
         scrobble_msg = "Scrobble failed"
         print(Date(), "Scrobble failed :(")
@@ -387,35 +385,50 @@ func updatedSettings(username: String, password: String, apikey: String, apisecr
     loadUserDefaults()
 }
 
-func initializeUserDefaults() {
-    print("Init userdefaults")
-    preferences.set("", forKey: "apikey")
-    preferences.set("", forKey: "apisecret")
-    preferences.set("", forKey: "username")
-    preferences.set("", forKey: "password")
-    preferences.set(false, forKey: "scrobbling enabled")
-    preferences.set("Safari, Google Chrome", forKey: "blacklisted apps")
-    print("Init ok")
-    loadUserDefaults()
-    
-    
-}
-
 func loadUserDefaults() {
-    print("Loading stored userdefaults")
+    print("Loading userdefaults")
+    
+    if isKeyPresentInUserDefaults(key: "username") == false {
+        print("Reset: username")
+        preferences.set("", forKey: "username")
+    }
     s_username = preferences.string(forKey: "username")!
+    
+    if isKeyPresentInUserDefaults(key: "password") == false {
+        print("Reset: password")
+        preferences.set("", forKey: "password")
+    }
     s_password = preferences.string(forKey: "password")!
+    
+    if isKeyPresentInUserDefaults(key: "apikey") == false {
+        print("Reset: apikey")
+        preferences.set("", forKey: "apikey")
+    }
     s_apikey = preferences.string(forKey: "apikey")!
+    
+    if isKeyPresentInUserDefaults(key: "apisecret") == false {
+        print("Reset: apisecret")
+        preferences.set("", forKey: "apisecret")
+    }
     s_apisecret = preferences.string(forKey: "apisecret")!
+    
+    if isKeyPresentInUserDefaults(key: "scrobbling enabled") == false {
+        print("Reset: scrobbling enabled")
+        preferences.set(false, forKey: "scrobbling enabled")
+    }
     s_scrobbling_enabled = preferences.bool(forKey: "scrobbling enabled")
     
     if isKeyPresentInUserDefaults(key: "blacklisted apps") == false {
-        print("adding default blacklisted apps to userdefaults")
+        print("Reset: blacklisted apps")
         preferences.set("Safari, Google Chrome", forKey: "blacklisted apps")
     }
     s_blacklisted_apps = preferences.string(forKey: "blacklisted apps")!
     
-    
+    if isKeyPresentInUserDefaults(key: "songs scrobbled") == false {
+        print("Reset: songs scrobbled")
+        preferences.set(0, forKey: "songs scrobbled")
+    }
+    s_scrobbled_songs = preferences.integer(forKey: "songs scrobbled")
     
     
     if isLastFMInfoEntered() == true && registered == false {
@@ -555,14 +568,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         print("applicationdidfinishlaunching")
-        
-        if !(isKeyPresentInUserDefaults(key: "apikey")) { // set up userdefaults if necessary
-            initializeUserDefaults()
-        } else {
-            // load them
-            loadUserDefaults()
-            
-        }
+        loadUserDefaults()
         
         let contentView = ContentView()
 
@@ -609,6 +615,19 @@ func OpenSettingsWindow() {
     windowRef.isReleasedWhenClosed = false
 }
 
+func OpenStatsWindow() {
+    var windowRef: NSWindow
+    windowRef = NSWindow(
+            contentRect: NSRect(x: 100, y: 100, width: 100, height: 100),
+            styleMask: [.titled, .closable],
+            backing: .buffered, defer: false)
+    windowRef.title = "Stats"
+    windowRef.center()
+    windowRef.contentView = NSHostingView(rootView: StatsView())
+    windowRef.makeKeyAndOrderFront(windowRef)
+    windowRef.isReleasedWhenClosed = false
+}
+
 func QuitMyself() {
     NSApp.terminate(nil)
 }
@@ -626,4 +645,17 @@ func get_player() -> String {
 
 func get_blacklisted() -> String {
     return s_blacklisted_apps
+}
+
+func get_program_version() -> String {
+    let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+    return appVersion!
+}
+
+func resetDefaults() {
+    let dictionary = preferences.dictionaryRepresentation()
+    dictionary.keys.forEach { key in
+        preferences.removeObject(forKey: key)
+    }
+    NSApp.terminate(nil)
 }
