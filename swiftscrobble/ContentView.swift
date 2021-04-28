@@ -11,6 +11,7 @@ struct ContentView: View {
     @State var song_artist = "Artist"
     @State var song_title = "Title"
     @State var song_album = "Album"
+    @State var player = "Player"
     @State var scrobble_status = "?"
     @State var MusicState = "stopped"
     @State var ScrobbleProgress: Float = 0.0
@@ -44,6 +45,7 @@ struct ContentView: View {
                     
                     //Text("Scrobbling enabled: " + String(scrobbling_enabled))
                     //Text("Scrobbled: " + scrobble_status)
+                    Text("Music Player: " + player)
                 }.padding().onReceive(pub) {_ in
                     //print(Date(), "UI got update request")
                     
@@ -51,6 +53,7 @@ struct ContentView: View {
                     self.song_artist = get_artist()
                     self.song_title = get_title()
                     self.song_album = get_album()
+                    self.player = get_player()
                     self.ScrobbleProgress = GetScrobbleProgress()
                     self.SongProgress = GetSongProgress()
                     self.scrobble_status = get_scrobble_status()
@@ -115,7 +118,7 @@ struct ContentView: View {
             
         
         .padding()
-        .frame(minWidth: 300, maxWidth: 300, minHeight: 280, maxHeight: 280)
+        .frame(minWidth: 300, maxWidth: 300, minHeight: 300, maxHeight: 300)
     }
 }
 
