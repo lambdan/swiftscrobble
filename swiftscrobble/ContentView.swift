@@ -131,21 +131,9 @@ struct SettingsView: View {
     
     var body: some View {
         VStack {
-            HStack {
-                Text("Get your API keys here:")
-                Link("https://www.last.fm/api/account/create", destination: URL(string: "https://www.last.fm/api/account/create")!)
-            }.padding()
-            HStack {
-                Text("Blacklisted apps:")
-                TextField("", text: $blacklisted_string).onChange(of: blacklisted_string) { newvalue in
-                    if newvalue == preferences.string(forKey: "blacklisted apps") {
-                        changed = false
-                    } else {
-                        changed = true
-                    }
-                }
-            }.padding()
-            VStack {
+            
+            VStack { // Last.fm settings block
+                
                 HStack {
                     Toggle("Enable Scrobbling", isOn: $scrobbling_enabled).onChange(of: scrobbling_enabled) { newvalue in
                         if newvalue == preferences.bool(forKey: "scrobbling enabled") {
@@ -154,6 +142,10 @@ struct SettingsView: View {
                             changed = true
                         }
                     }
+                }
+                HStack {
+                    Text("Get API keys here:")
+                    Link("https://www.last.fm/api/account/create", destination: URL(string: "https://www.last.fm/api/account/create")!)
                 }
                 HStack {
                     Text("API Key:")
@@ -195,12 +187,23 @@ struct SettingsView: View {
                         }
                     }
                 }
-                
             }.padding()
+            
+            HStack {
+                Text("Ignored apps:")
+                TextField("", text: $blacklisted_string).onChange(of: blacklisted_string) { newvalue in
+                    if newvalue == preferences.string(forKey: "blacklisted apps") {
+                        changed = false
+                    } else {
+                        changed = true
+                    }
+                }
+            }.padding()
+            
             Button("Save") {
                 updatedSettings(username:self.username, password:self.password, apikey:self.apikey, apisecret:self.apisecret, scrobblingenabled: self.scrobbling_enabled, blacklisted: self.blacklisted_string)
             }.padding().disabled(changed == false)
-        }.frame(minWidth: 800, maxHeight: 800)
+        }.frame(minWidth: 800, maxHeight: 800).padding()
     }
 }
 
