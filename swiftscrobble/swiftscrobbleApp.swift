@@ -421,8 +421,9 @@ func loadUserDefaults() {
     
     if isKeyPresentInUserDefaults(key: "blacklisted apps") == false {
         print("Reset: blacklisted apps")
-        preferences.set("Safari, Google Chrome", forKey: "blacklisted apps")
+        preferences.set("Safari, Google Chrome, Spotify, Plex, Plexamp", forKey: "blacklisted apps")
     }
+    // TODO this should be converted to a list instead of just being a string
     s_blacklisted_apps = preferences.string(forKey: "blacklisted apps")!
     
     if isKeyPresentInUserDefaults(key: "songs scrobbled") == false {
