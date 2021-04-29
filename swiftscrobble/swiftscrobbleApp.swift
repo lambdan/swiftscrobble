@@ -4,18 +4,6 @@
 //
 //  Created by David Silverlind on 2021-04-21.
 //
-/*
- 
-
- TODO:
-- Implement caching (so it can store scrobbles while offline)
- 
- BUGS:
- - Music sometimes stops being tracked (likely the else cause getting triggered when opening youtube or something)
-    - Maybe solution: check how many fields get set and prioritize the one with most fields?
-    - This is somewhat fixed since implementing ignoring apps (opening youtube wont ruin your day atleast)
- 
- */
 
 import SwiftUI
 import Cocoa
