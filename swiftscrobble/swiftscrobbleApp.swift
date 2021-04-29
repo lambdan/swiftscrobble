@@ -63,6 +63,9 @@ var s_scrobbled_songs = 0
 
 var reset_button_times_clicked = 0
 
+var statusBarItem: NSStatusItem!
+var currentMenuBarIcon = ""
+
 // disable menu bar items
 
 
@@ -200,6 +203,7 @@ func newSong() {
     timer = Timer.scheduledTimer(withTimeInterval: UpdateTimerFrequency, repeats: true) { timer in
         update_time_listened()
     }
+    updateMenuBarIcon()
 }
 
 func ChangeDetected(artist: String, title: String, album: String, duration:Double, paused:Double, pbrate:Double, player: String) {
@@ -259,6 +263,7 @@ func ChangeDetected(artist: String, title: String, album: String, duration:Doubl
     }
     
     send_NC(text: "update ui plz")
+    updateMenuBarIcon()
     print("-------end of ChangeDetected-------")
 }
 
@@ -304,6 +309,7 @@ func update_time_listened() {
     if ScrobbleConditionsMet == false {
         if g_duration >= 30 && time_listened >= (g_duration/2) || g_duration > 480 && time_listened > 240 {
             ScrobbleConditionsMet = true
+            updateMenuBarIcon()
             scrobble(artist: g_artist, title: g_title, album: g_album, unixtime: Date().timeIntervalSince1970)
         }
     }
@@ -439,6 +445,8 @@ func loadUserDefaults() {
         startMonitoring()
     }
     
+
+    updateMenuBarIcon()
     send_NC(text: "loaded data")
 }
 
@@ -553,6 +561,7 @@ func MusicStopped() {
     g_state = "stopped"
     last_song_id = ""
     timer.invalidate()
+    updateMenuBarIcon()
     send_NC(text: "music stopped?")
 }
 
@@ -564,9 +573,10 @@ func CacheScrobble(artist: String, title: String, album: String, date: Double) {
 }
 
 
+
 class AppDelegate: NSObject, NSApplicationDelegate {
     var popover = NSPopover.init()
-    var statusBarItem: NSStatusItem?
+    
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         print("applicationdidfinishlaunching")
@@ -580,9 +590,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentViewController = NSViewController()
         popover.contentViewController?.view = NSHostingView(rootView: contentView)
         statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusBarItem?.button?.image = NSImage(systemSymbolName: "play.fill", accessibilityDescription: nil)
+        statusBarItem?.button?.image = NSImage(systemSymbolName: "stop", accessibilityDescription: nil)
         statusBarItem?.button?.action = #selector(AppDelegate.togglePopover(_:))
         self.popover.contentViewController?.view.window?.becomeKey()
+        updateMenuBarIcon()
         
         
     }
@@ -665,5 +676,34 @@ func resetDefaults() {
         }
         NSApp.terminate(nil)
         
+    }
+}
+
+func updateMenuBarIcon() {
+    if isLastFMInfoEntered() == false {
+        setIcon(icon: "person.crop.circle.badge.questionmark")
+    } else if isScrobblingEnabled() == false && g_state == "playing" {
+        setIcon(icon: "play.circle")
+    } else if isScrobblingEnabled() == true && ScrobbleConditionsMet {
+        if g_state == "paused" {
+            setIcon(icon: "pause.circle.fill")
+        } else if g_state == "playing" {
+            setIcon(icon: "play.circle.fill")
+        }
+    } else if g_state == "paused" {
+        setIcon(icon: "pause.circle")
+    } else if g_state == "playing" {
+        setIcon(icon: "play.circle")
+    } else {
+        setIcon(icon: "stop.circle")
+    }
+}
+
+func setIcon(icon: String) {
+    if icon != currentMenuBarIcon {
+        statusBarItem?.button?.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil)
+        currentMenuBarIcon = icon
+    } else {
+        return
     }
 }
