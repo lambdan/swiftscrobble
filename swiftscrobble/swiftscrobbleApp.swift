@@ -23,12 +23,10 @@ import Cocoa
 
 
 let NCName = "swiftscrobble"
-let version = 0.1
 let scrob_path = String( Bundle.main.path(forResource: "scrob", ofType: "py")! ) // https://stackoverflow.com/a/61134616
 let preferences = UserDefaults.standard
 
 var registered = false // if remote monitor is registered
-var i = 0
 var timer = Timer()
 let UpdateTimerFrequency = 1.0
 
@@ -38,8 +36,6 @@ var g_title = ""
 var g_album = ""
 var g_duration = 0.0
 var g_state = "stopped" // paused or playing
-
-var playbackrate = 0.0
 
 var paused_at = 0.0
 var last_state = ""
