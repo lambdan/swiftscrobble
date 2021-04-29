@@ -223,12 +223,12 @@ struct StatsView: View {
             Text("swiftscrobble version " + program_version)
             Text(String(songs_scrobbled) + " scrobbles since " + songs_scrobbled_date).padding()
             VStack {
-                Button("⚠️ Reset Everything and Quit ⚠️") {
+                Button("⚠️ Reset Everything & Quit ⚠️") {
                     self.reset_clicked = reset_button_times_clicked
                     resetDefaults()
                 }
                 if reset_clicked > 0 {
-                    Text("click it " + String(9-reset_clicked) + " more time(s)")
+                    Text("click " + String(9-reset_clicked) + " more time(s)")
                 }
                 
             }.padding()
