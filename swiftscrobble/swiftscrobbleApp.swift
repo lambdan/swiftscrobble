@@ -14,7 +14,6 @@
  - Music sometimes stops being tracked (likely the else cause getting triggered when opening youtube or something)
     - Maybe solution: check how many fields get set and prioritize the one with most fields?
     - This is somewhat fixed since implementing ignoring apps (opening youtube wont ruin your day atleast)
- - Settings (and Stats) window isn't focused when opened
  
  */
 
@@ -619,6 +618,7 @@ func OpenSettingsWindow() {
     windowRef.center()
     windowRef.contentView = NSHostingView(rootView: SettingsView())
     windowRef.makeKeyAndOrderFront(windowRef)
+    NSApp.activate(ignoringOtherApps: true)
     windowRef.isReleasedWhenClosed = false
 }
 
@@ -632,6 +632,7 @@ func OpenStatsWindow() {
     windowRef.center()
     windowRef.contentView = NSHostingView(rootView: StatsView())
     windowRef.makeKeyAndOrderFront(windowRef)
+    NSApp.activate(ignoringOtherApps: true)
     windowRef.isReleasedWhenClosed = false
 }
 
