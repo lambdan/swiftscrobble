@@ -40,6 +40,7 @@ var s_password = ""
 var s_scrobbling_enabled = false
 var s_blacklisted_apps = ""
 var s_scrobbled_songs = 0
+var s_songs_scrobbled_date = ""
 
 var reset_button_times_clicked = 0
 
@@ -418,6 +419,20 @@ func loadUserDefaults() {
         preferences.set(0, forKey: "songs scrobbled")
     }
     s_scrobbled_songs = preferences.integer(forKey: "songs scrobbled")
+    
+    if isKeyPresentInUserDefaults(key: "songs scrobbled date") == false {
+        print("Reset: songs scrobbled date")
+        
+        // https://stackoverflow.com/a/46377016
+        let now = Date()
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        let dateString = formatter.string(from: now)
+        preferences.set(dateString, forKey: "songs scrobbled date")
+        
+    }
+    s_songs_scrobbled_date = preferences.string(forKey: "songs scrobbled date")!
     
     
     if isLastFMInfoEntered() == true && registered == false {

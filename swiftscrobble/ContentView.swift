@@ -214,13 +214,14 @@ struct SettingsView: View {
 
 struct StatsView: View {
     @State private var songs_scrobbled = preferences.integer(forKey: "songs scrobbled")
+    @State private var songs_scrobbled_date = preferences.string(forKey: "songs scrobbled date")!
     @State private var program_version = get_program_version()
     @State private var reset_clicked = reset_button_times_clicked
     
     var body: some View {
         VStack {
             Text("swiftscrobble version " + program_version)
-            Text("Scrobbles: " + String(songs_scrobbled)).padding()
+            Text(String(songs_scrobbled) + " scrobbles since " + songs_scrobbled_date).padding()
             VStack {
                 Button("⚠️ Reset Everything and Quit ⚠️") {
                     self.reset_clicked = reset_button_times_clicked
