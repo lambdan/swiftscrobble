@@ -8,8 +8,6 @@
  
 
  TODO:
-- Update menubar icon dynamically (play or pause icon)
-    - Maybe make it green when scrobbled or something?
 - Implement caching (so it can store scrobbles while offline)
  
  BUGS:
@@ -17,7 +15,6 @@
     - Maybe solution: check how many fields get set and prioritize the one with most fields?
     - This is somewhat fixed since implementing ignoring apps (opening youtube wont ruin your day atleast)
  - Settings (and Stats) window isn't focused when opened
- 
  
  */
 
