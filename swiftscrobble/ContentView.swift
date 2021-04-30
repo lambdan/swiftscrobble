@@ -229,14 +229,11 @@ struct StatsView: View {
             Text(String(songs_scrobbled) + " scrobbles since " + songs_scrobbled_date).padding()
             
             HStack{
-                Text("Songs in cache: " + String(cache_count))
-                VStack {
-                    Button("Process Cache Now") {
+                Text("Songs in cache: " + String(cache_count)).padding()
+                Button("Process Cache Now") {
                         ProcessCache()
-                    }.disabled(cache_count == 0).padding()
-                }
-
-            }
+                }.disabled(cache_count == 0).padding()
+            }.padding()
             VStack {
                 Button("⚠️ Reset Everything & Quit ⚠️") {
                     self.reset_clicked = reset_button_times_clicked
