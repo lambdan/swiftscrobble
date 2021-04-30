@@ -41,6 +41,7 @@ var s_scrobbling_enabled = false
 var s_blacklisted_apps = ""
 var s_scrobbled_songs = 0
 var s_songs_scrobbled_date = ""
+var s_cached_scrobbles = [String]()
 
 var reset_button_times_clicked = 0
 
@@ -318,6 +319,7 @@ func scrobble(artist: String, title: String, album: String, unixtime: Double) {
     scrobble_msg = "Scrobbling..."
     send_NC(text: "scrobbling...")
     
+    //let cmd = "Fail" // Simulate fail for testing
     let cmd = shell("python3 " + scrob_path + " \"" + Data(artist.utf8).base64EncodedString() + "\" \"" + Data(title.utf8).base64EncodedString() + "\" \"" + Data(s_apikey.utf8).base64EncodedString() + "\" \"" + Data(s_apisecret.utf8).base64EncodedString() + "\" \"" + Data(s_username.utf8).base64EncodedString() + "\" \"" + Data(s_password.utf8).base64EncodedString() + "\" \"" + Data(String(unixtime).utf8).base64EncodedString() + "\" \"" + Data(String(album).utf8).base64EncodedString() + "\"")
     if cmd.contains("OK") {
         scrobble_msg = "Scrobbled"
@@ -327,13 +329,20 @@ func scrobble(artist: String, title: String, album: String, unixtime: Double) {
         let new_total_scrobbles = preferences.integer(forKey: "songs scrobbled") + 1
         preferences.set(new_total_scrobbles, forKey: "songs scrobbled")
         
+        // Since scrobbling seems to work, try processing our cache if there is any
+        if HowManyInCache() > 0 {
+            ProcessCache()
+        }
+        
     } else {
-        scrobble_msg = "Scrobble failed"
-        print(Date(), "Scrobble failed :(")
-        CacheScrobble(artist: artist, title: title, album: album, date: unixtime)
+        scrobble_msg = "Scrobble failed, added to cache"
+        print(Date(), "Scrobble failed")
+        CacheScrobble(artist: artist, title: title, album: album, unixtime: unixtime)
     }
     send_NC(text: "scrobbled")
 }
+
+
 
 func get_scrobble_status() -> String {
     if isScrobblingEnabled() == false {
@@ -433,7 +442,12 @@ func loadUserDefaults() {
         
     }
     s_songs_scrobbled_date = preferences.string(forKey: "songs scrobbled date")!
-    
+
+    if isKeyPresentInUserDefaults(key: "scrobble cache") == false {
+        print("Reset: scrobble cache")
+        preferences.set([String](), forKey: "scrobble cache")
+    }
+    s_cached_scrobbles = preferences.stringArray(forKey: "scrobble cache")!
     
     if isLastFMInfoEntered() == true && registered == false {
         print("Starting monitoring...")
@@ -561,13 +575,79 @@ func MusicStopped() {
     send_NC(text: "music stopped?")
 }
 
-func CacheScrobble(artist: String, title: String, album: String, date: Double) {
+func CacheScrobble(artist: String, title: String, album: String, unixtime: Double) {
     // CacheScrobble for when scrobbling fails to retry at a later time
-    print("Cache Scrobble:", artist, title, album, date)
-    // TODO implement (add song to an array, save array to UserDefaults, have menubar option to show cached scrobbles, have button to retry scrobbling them
+    // This is a really awful way of doing it...........
+    print("Cache Scrobble:", artist, title, album, unixtime)
     
+    // Order: artist, title, album, unixtime
+    let string = Data(artist.utf8).base64EncodedString() + "," + Data(title.utf8).base64EncodedString() + "," + Data(album.utf8).base64EncodedString() + "," + Data(String(unixtime).utf8).base64EncodedString()
+    s_cached_scrobbles.append(string)
+    
+    preferences.set(s_cached_scrobbles, forKey: "scrobble cache")
 }
 
+func HowManyInCache() -> Int {
+    var count = 0
+    for _ in s_cached_scrobbles {
+        count += 1
+    }
+    return count
+}
+
+func fromBase64(in_string: String) -> String? {
+    // http://www.seanbehan.com/extension-for-encoding-and-decoding-strings-in-base64-in-swift/
+    guard let data = Data(base64Encoded: in_string) else {
+        return nil
+    }
+    return String(data: data, encoding: .utf8)
+}
+
+
+func ProcessCache() {
+    print("Processing cache...")
+    
+    if isScrobblingEnabled() == false {
+        print("SCROBBLING DISABLED")
+        return
+    }
+        
+    // make sure user has entered info
+    if isLastFMInfoEntered() == false {
+        print("scrobble fail because no user info")
+        return
+    }
+    
+    for song in s_cached_scrobbles {
+        // decode song string into info
+        // Order: artist, title, album, unixtime
+        let splitted = song.split(separator: ",")
+        let artist = fromBase64(in_string: String(splitted[0]))!
+        let title = fromBase64(in_string: String(splitted[1]))!
+        let album = fromBase64(in_string: String(splitted[2]))!
+        let unixtime = fromBase64(in_string: String(splitted[3]))!
+        print("Cache scrobbling:", artist, title, album, unixtime)
+        
+        let cmd = shell("python3 " + scrob_path + " \"" + Data(artist.utf8).base64EncodedString() + "\" \"" + Data(title.utf8).base64EncodedString() + "\" \"" + Data(s_apikey.utf8).base64EncodedString() + "\" \"" + Data(s_apisecret.utf8).base64EncodedString() + "\" \"" + Data(s_username.utf8).base64EncodedString() + "\" \"" + Data(s_password.utf8).base64EncodedString() + "\" \"" + Data(String(unixtime).utf8).base64EncodedString() + "\" \"" + Data(String(album).utf8).base64EncodedString() + "\"")
+
+        if cmd.contains("OK") {
+            print("OK from cache")
+            
+            // Update scrobble counter
+            let new_total_scrobbles = preferences.integer(forKey: "songs scrobbled") + 1
+            preferences.set(new_total_scrobbles, forKey: "songs scrobbled")
+            
+            // Save
+            s_cached_scrobbles.removeAll(where: {$0 == song}) // Remove this song from the list... since each song should have an unique timestamp this method should be OK
+            preferences.set(s_cached_scrobbles, forKey: "scrobble cache")
+            send_NC(text: "scrobbled from cache")
+            
+        } else {
+            print("Scrobble in cache failed")
+        }
+    }
+    print("Processing cache: done")
+}
 
 
 class AppDelegate: NSObject, NSApplicationDelegate {

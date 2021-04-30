@@ -134,6 +134,8 @@ struct SettingsView: View {
     @State private var blacklisted_string = preferences.string(forKey: "blacklisted apps")!
     @State private var changed = false
     
+    
+    
     var body: some View {
         VStack {
             
@@ -217,11 +219,24 @@ struct StatsView: View {
     @State private var songs_scrobbled_date = preferences.string(forKey: "songs scrobbled date")!
     @State private var program_version = get_program_version()
     @State private var reset_clicked = reset_button_times_clicked
+    @State private var cache_count = HowManyInCache()
+    
+    let pub = NotificationCenter.default.publisher(for: NSNotification.Name(NCName))
     
     var body: some View {
         VStack {
             Text("swiftscrobble version " + program_version)
             Text(String(songs_scrobbled) + " scrobbles since " + songs_scrobbled_date).padding()
+            
+            HStack{
+                Text("Songs in cache: " + String(cache_count))
+                VStack {
+                    Button("Process Cache Now") {
+                        ProcessCache()
+                    }.disabled(cache_count == 0).padding()
+                }
+
+            }
             VStack {
                 Button("⚠️ Reset Everything & Quit ⚠️") {
                     self.reset_clicked = reset_button_times_clicked
@@ -232,7 +247,13 @@ struct StatsView: View {
                 }
                 
             }.padding()
-        }.padding().frame(minWidth: 400, maxHeight: 400).padding()
+        }
+        .onReceive(pub) {_ in
+            songs_scrobbled = preferences.integer(forKey: "songs scrobbled")
+            self.reset_clicked = reset_button_times_clicked
+            self.cache_count = HowManyInCache()
+        }
+        .padding().frame(minWidth: 400, maxHeight: 400).padding()
     }
 }
 
