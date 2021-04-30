@@ -746,6 +746,7 @@ func get_program_version() -> String {
 func resetDefaults() {
     reset_button_times_clicked += 1
     print("reset button clicked:", reset_button_times_clicked)
+    send_NC(text: "reset clicked")
     if reset_button_times_clicked >= 10 {
         print("RESET ALL AND QUIT")
         let dictionary = preferences.dictionaryRepresentation()

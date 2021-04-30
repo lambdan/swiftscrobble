@@ -243,7 +243,7 @@ struct StatsView: View {
                     resetDefaults()
                 }
                 if reset_clicked > 0 {
-                    Text("click " + String(9-reset_clicked) + " more time(s)")
+                    Text("click " + String(10-reset_clicked) + " more time(s)")
                 }
                 
             }.padding()
