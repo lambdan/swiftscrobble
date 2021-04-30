@@ -706,6 +706,7 @@ func OpenSettingsWindow() {
 }
 
 func OpenStatsWindow() {
+    reset_button_times_clicked = 0 // Reset counter for the reset button when open window
     var windowRef: NSWindow
     windowRef = NSWindow(
             contentRect: NSRect(x: 100, y: 100, width: 100, height: 100),
