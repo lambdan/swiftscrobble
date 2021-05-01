@@ -587,7 +587,7 @@ func CacheScrobble(artist: String, title: String, album: String, unixtime: Doubl
     // CacheScrobble for when scrobbling fails to retry at a later time
     // This is a really awful way of doing it...........
     print("Cache Scrobble:", artist, title, album, unixtime)
-    AddLogMessage(msg: "Added to cache:" + artist + " - " + title)
+    AddLogMessage(msg: "Added to cache: " + artist + " - " + title)
     
     // Order: artist, title, album, unixtime
     let string = Data(artist.utf8).base64EncodedString() + "," + Data(title.utf8).base64EncodedString() + "," + Data(album.utf8).base64EncodedString() + "," + Data(String(unixtime).utf8).base64EncodedString()
@@ -677,7 +677,7 @@ func ProcessCache() {
             
         } else {
             print("Scrobbling from cache failed... returning")
-            AddLogMessage(msg: "Scrobbling from cache failed")
+            AddLogMessage(msg: "Scrobbling from cache failed: " + cmd)
             return
         }
     }
