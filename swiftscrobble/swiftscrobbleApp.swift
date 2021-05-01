@@ -189,16 +189,7 @@ func newSong() {
 }
 
 func ChangeDetected(artist: String, title: String, album: String, duration:Double, paused:Double, pbrate:Double, player: String) {
-    //print("CD", artist, title, album, duration, paused, pbrate, player)
-    print("--- ChangeDetected ---")
-    print("Player:", player)
-    print("Artist:", artist)
-    print("Title:", title)
-    print("Album:", album)
-    print("Duration:", duration)
-    print("Paused at:", paused)
-    print("Playback rate:", pbrate)
-    
+    print("ChangeDetected()", player, artist, title, album, duration, paused, pbrate)
     
     /*if g_state == "playing" && player != g_player && g_player != "?" {
         print("Preventing new player from taking over!!!")
@@ -246,7 +237,6 @@ func ChangeDetected(artist: String, title: String, album: String, duration:Doubl
     
     send_NC(text: "update ui plz")
     updateMenuBarIcon()
-    print("-------end of ChangeDetected-------")
 }
 
 
