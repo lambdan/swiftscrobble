@@ -12,32 +12,22 @@ datestamp = float(base64.b64decode(sys.argv[7]).decode("utf8"))
 album = base64.b64decode(sys.argv[8]).decode("utf8")
 
 
-#print("in", sys.argv)
-#print("decoded", artist, title, API_KEY, API_SECRET, USERNAME, PASSWORD,datestamp)
+try:
+    network = pylast.LastFMNetwork(
+        api_key=API_KEY,
+        api_secret=API_SECRET,
+        username=USERNAME,
+        password_hash=pylast.md5(PASSWORD),
+    )
+    timestamp = int(datestamp)
+    if album == "":
+        network.scrobble(artist=artist, title=title, timestamp=timestamp)
+    else:
+        network.scrobble(artist=artist, title=title, timestamp=timestamp, album=album)
+        
+    print("OK :)", end="")
 
-network = pylast.LastFMNetwork(
-    api_key=API_KEY,
-    api_secret=API_SECRET,
-    username=USERNAME,
-    password_hash=pylast.md5(PASSWORD),
-)
-
-
-
-# api keys can be created: https://www.last.fm/api/account/create
-
-#timestamp = int(time.time())
-# convert datestamp to unixtime
-#timestamp = (int(datetime.datetime.strptime(datestamp, '%Y-%m-%d %H:%M:%S %z').strftime("%s")))
-timestamp = int(datestamp)
-#print("timestamp:",timestamp)
-
-#print("Artist:", artist)
-#print("Title:", title)
-#confirm = input("OK?")
-if album == "": # no album
-    network.scrobble(artist=artist, title=title, timestamp=timestamp)
-    print("OK (no album)")
-else: # album set
-    network.scrobble(artist=artist, title=title, timestamp=timestamp, album=album)
-    print("OK (with album)", end="")
+except Exception as e:
+    print(e,end="")
+    sys.exit(1)
+    

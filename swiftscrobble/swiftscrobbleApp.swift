@@ -321,7 +321,7 @@ func scrobble(artist: String, title: String, album: String, unixtime: Double) {
     
     //let cmd = "Fail" // Simulate fail for testing
     let cmd = shell("python3 " + scrob_path + " \"" + Data(artist.utf8).base64EncodedString() + "\" \"" + Data(title.utf8).base64EncodedString() + "\" \"" + Data(s_apikey.utf8).base64EncodedString() + "\" \"" + Data(s_apisecret.utf8).base64EncodedString() + "\" \"" + Data(s_username.utf8).base64EncodedString() + "\" \"" + Data(s_password.utf8).base64EncodedString() + "\" \"" + Data(String(unixtime).utf8).base64EncodedString() + "\" \"" + Data(String(album).utf8).base64EncodedString() + "\"")
-    if cmd.contains("OK") {
+    if cmd.contains("OK :)") {
         scrobble_msg = "Scrobbled"
         print(Date(), "Scrobble Success")
         
@@ -335,7 +335,7 @@ func scrobble(artist: String, title: String, album: String, unixtime: Double) {
         }
         
     } else {
-        scrobble_msg = "Scrobble failed, added to cache"
+        scrobble_msg = "Scrobble failed: " + cmd
         print(Date(), "Scrobble failed")
         CacheScrobble(artist: artist, title: title, album: album, unixtime: unixtime)
     }
@@ -630,9 +630,7 @@ func ProcessCache() {
         
         let cmd = shell("python3 " + scrob_path + " \"" + Data(artist.utf8).base64EncodedString() + "\" \"" + Data(title.utf8).base64EncodedString() + "\" \"" + Data(s_apikey.utf8).base64EncodedString() + "\" \"" + Data(s_apisecret.utf8).base64EncodedString() + "\" \"" + Data(s_username.utf8).base64EncodedString() + "\" \"" + Data(s_password.utf8).base64EncodedString() + "\" \"" + Data(String(unixtime).utf8).base64EncodedString() + "\" \"" + Data(String(album).utf8).base64EncodedString() + "\"")
 
-        if cmd.contains("OK") {
-            print("OK from cache")
-            
+        if cmd.contains("OK :)") {
             // Update scrobble counter
             let new_total_scrobbles = preferences.integer(forKey: "songs scrobbled") + 1
             preferences.set(new_total_scrobbles, forKey: "songs scrobbled")
