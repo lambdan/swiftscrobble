@@ -220,6 +220,7 @@ struct StatsView: View {
     @State private var program_version = get_program_version()
     @State private var reset_clicked = reset_button_times_clicked
     @State private var cache_count = HowManyInCache()
+    @State private var msgs_count = HowManyMsgs()
     
     let pub = NotificationCenter.default.publisher(for: NSNotification.Name(NCName))
     
@@ -233,8 +234,11 @@ struct StatsView: View {
                 Button("Process Cache Now") {
                         ProcessCache()
                 }.disabled(cache_count == 0).padding()
-            }.padding()
+            }
             VStack {
+                Button("View Log") {
+                    OpenMsgsWindow()
+                }.disabled(msgs_count == 0)
                 Button("⚠️ Reset Everything & Quit ⚠️") {
                     self.reset_clicked = reset_button_times_clicked
                     resetDefaults()
@@ -249,8 +253,32 @@ struct StatsView: View {
             songs_scrobbled = preferences.integer(forKey: "songs scrobbled")
             self.reset_clicked = reset_button_times_clicked
             self.cache_count = HowManyInCache()
+            self.msgs_count = HowManyMsgs()
         }
         .padding().frame(minWidth: 400, maxHeight: 400).padding()
+    }
+}
+
+struct MsgsView: View {
+    @State private var messages = preferences.stringArray(forKey: "scrobble msgs")
+    @State private var msg_count = HowManyMsgs()
+    
+    let pub = NotificationCenter.default.publisher(for: NSNotification.Name(NCName))
+    
+    var body: some View {
+        VStack {
+            Text("Log Entries: " + String(self.msg_count)).padding()
+            List {
+                ForEach(self.messages!, id: \.self) { string in
+                    Text(string)
+                }
+            }.padding()
+        }
+        .onReceive(pub) {_ in
+            self.messages = preferences.stringArray(forKey: "scrobble msgs")
+            self.msg_count = HowManyMsgs()
+        }
+        .padding().frame(minWidth: 600, minHeight: 600)
     }
 }
 

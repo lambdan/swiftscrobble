@@ -324,6 +324,7 @@ func scrobble(artist: String, title: String, album: String, unixtime: Double) {
     if cmd.contains("OK :)") {
         scrobble_msg = "Scrobbled"
         print(Date(), "Scrobble Success")
+        AddLogMessage(msg: "Scrobbled OK: " + artist + " - " + title)
         
         // Update scrobble counter
         let new_total_scrobbles = preferences.integer(forKey: "songs scrobbled") + 1
@@ -335,9 +336,11 @@ func scrobble(artist: String, title: String, album: String, unixtime: Double) {
         }
         
     } else {
-        scrobble_msg = "Scrobble failed: " + cmd
+        scrobble_msg = "Scrobble failed, cached"
+        AddLogMessage(msg: "Scrobbled failed: " + artist + " - " + title + ": " + cmd)
         print(Date(), "Scrobble failed")
         CacheScrobble(artist: artist, title: title, album: album, unixtime: unixtime)
+        
     }
     send_NC(text: "scrobbled")
 }
@@ -448,6 +451,11 @@ func loadUserDefaults() {
         preferences.set([String](), forKey: "scrobble cache")
     }
     s_cached_scrobbles = preferences.stringArray(forKey: "scrobble cache")!
+    
+    if isKeyPresentInUserDefaults(key: "scrobble msgs") == false {
+        print("Reset: scrobble msgs")
+        preferences.set([String](), forKey: "scrobble msgs")
+    }
     
     if isLastFMInfoEntered() == true && registered == false {
         print("Starting monitoring...")
@@ -579,12 +587,38 @@ func CacheScrobble(artist: String, title: String, album: String, unixtime: Doubl
     // CacheScrobble for when scrobbling fails to retry at a later time
     // This is a really awful way of doing it...........
     print("Cache Scrobble:", artist, title, album, unixtime)
+    AddLogMessage(msg: "Added to cache:" + artist + " - " + title)
     
     // Order: artist, title, album, unixtime
     let string = Data(artist.utf8).base64EncodedString() + "," + Data(title.utf8).base64EncodedString() + "," + Data(album.utf8).base64EncodedString() + "," + Data(String(unixtime).utf8).base64EncodedString()
     s_cached_scrobbles.append(string)
     
     preferences.set(s_cached_scrobbles, forKey: "scrobble cache")
+}
+
+func AddLogMessage(msg: String) {
+    print("AddLogMessage: ", msg)
+    let now = Date()
+    let formatter = DateFormatter()
+    formatter.timeZone = TimeZone.current
+    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+    let dateString = formatter.string(from: now)
+    
+    let message = dateString + ": " + msg
+    var current_messages = preferences.stringArray(forKey: "scrobble msgs")!
+    current_messages.append(message)
+    if current_messages.count > 100 {
+        current_messages.removeFirst()
+    }
+    preferences.set(current_messages, forKey: "scrobble msgs")
+}
+
+func HowManyMsgs() -> Int {
+    var count = 0
+    for _ in preferences.stringArray(forKey: "scrobble msgs")! {
+        count += 1
+    }
+    return count
 }
 
 func HowManyInCache() -> Int {
@@ -638,10 +672,13 @@ func ProcessCache() {
             // Save
             s_cached_scrobbles.removeAll(where: {$0 == song}) // Remove this song from the list... since each song should have an unique timestamp this method should be OK
             preferences.set(s_cached_scrobbles, forKey: "scrobble cache")
+            AddLogMessage(msg: "Scrobbled from cache: " + artist + " - " + title)
             send_NC(text: "scrobbled from cache")
             
         } else {
-            print("Scrobble in cache failed")
+            print("Scrobbling from cache failed... returning")
+            AddLogMessage(msg: "Scrobbling from cache failed")
+            return
         }
     }
     print("Processing cache: done")
@@ -710,9 +747,23 @@ func OpenStatsWindow() {
             contentRect: NSRect(x: 100, y: 100, width: 100, height: 100),
             styleMask: [.titled, .closable],
             backing: .buffered, defer: false)
-    windowRef.title = "Stats"
+    windowRef.title = "Info"
     windowRef.center()
     windowRef.contentView = NSHostingView(rootView: StatsView())
+    windowRef.makeKeyAndOrderFront(windowRef)
+    NSApp.activate(ignoringOtherApps: true)
+    windowRef.isReleasedWhenClosed = false
+}
+
+func OpenMsgsWindow() {
+    var windowRef: NSWindow
+    windowRef = NSWindow(
+            contentRect: NSRect(x: 100, y: 100, width: 100, height: 100),
+            styleMask: [.titled, .closable],
+            backing: .buffered, defer: false)
+    windowRef.title = "Log"
+    windowRef.center()
+    windowRef.contentView = NSHostingView(rootView: MsgsView())
     windowRef.makeKeyAndOrderFront(windowRef)
     NSApp.activate(ignoringOtherApps: true)
     windowRef.isReleasedWhenClosed = false
