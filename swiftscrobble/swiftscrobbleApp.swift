@@ -150,6 +150,23 @@ func NowPlayingInfoTrigger(notification: Notification) {
             local_paused_at = Double(information["kMRMediaRemoteNowPlayingInfoElapsedTime"] as! NSNumber) // only updates when paused
         }
         
+        if ( notification.userInfo?["kMRMediaRemoteUpdatedContentItemsUserInfoKey"] != nil ) {
+            let notifi = notification.userInfo?["kMRMediaRemoteUpdatedContentItemsUserInfoKey"]
+            let array = (notifi! as! NSArray).mutableCopy() as! NSMutableArray
+            let s = array.componentsJoined(by: "-")
+            let l = s.lengthOfBytes(using: .utf8)
+            
+            if l > 0 {
+                if MusicPlayer == "Cog" && s.contains("playbackRate") == false {
+                    local_playbackrate = 0
+                }
+            } else {
+                MusicStopped()
+            }
+        } else {
+            MusicStopped()
+        }
+        
         if local_artist != "" && local_title != "" && local_duration > 0 && MusicPlayer != "" {
             ChangeDetected(artist:local_artist, title:local_title, album: local_album, duration:local_duration, paused:local_paused_at, pbrate:local_playbackrate, player:MusicPlayer)
         }
