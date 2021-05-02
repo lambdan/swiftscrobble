@@ -800,21 +800,34 @@ func resetDefaults() {
 
 func updateMenuBarIcon() {
     if isLastFMInfoEntered() == false {
-        setIcon(icon: "person.crop.circle.badge.questionmark")
+        setIcon(icon: "person.fill.questionmark")
+        
     } else if isScrobblingEnabled() == false && g_state == "playing" {
-        setIcon(icon: "play.circle")
+        setIcon(icon: "play.slash")
+        
     } else if isScrobblingEnabled() == true && ScrobbleConditionsMet {
         if g_state == "paused" {
-            setIcon(icon: "pause.circle.fill")
+            setIcon(icon: "pause.fill")
         } else if g_state == "playing" {
-            setIcon(icon: "play.circle.fill")
+            if scrobble_msg.contains("Scrobble failed") {
+                setIcon(icon: "play.slash.fill")
+            } else {
+                setIcon(icon: "play.fill")
+            }
         }
+        
+    } else if g_state == "stopped" {
+        setIcon(icon: "stop")
+        
     } else if g_state == "paused" {
-        setIcon(icon: "pause.circle")
+        setIcon(icon: "pause")
+        
     } else if g_state == "playing" {
-        setIcon(icon: "play.circle")
+        setIcon(icon: "play")
+        
     } else {
-        setIcon(icon: "stop.circle")
+        setIcon(icon: "stop")
+        
     }
 }
 
