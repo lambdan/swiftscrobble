@@ -267,7 +267,7 @@ struct MsgsView: View {
     
     var body: some View {
         VStack {
-            Text("Log Entries: " + String(self.msg_count)).padding()
+            //Text("Log Entries: " + String(self.msg_count)).padding()
             List {
                 ForEach(self.messages!, id: \.self) { string in
                     Text(string)

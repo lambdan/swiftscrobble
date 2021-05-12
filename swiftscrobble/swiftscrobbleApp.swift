@@ -327,7 +327,7 @@ func scrobble(artist: String, title: String, album: String, unixtime: Double) {
         
     } else {
         scrobble_msg = "Scrobble failed, cached"
-        AddLogMessage(msg: "Scrobbled failed: " + artist + " - " + title + ": " + cmd)
+        AddLogMessage(msg: "Scrobble failed: " + artist + " - " + title + ": " + cmd)
         print(Date(), "Scrobble failed")
         CacheScrobble(artist: artist, title: title, album: album, unixtime: unixtime)
         
