@@ -226,28 +226,36 @@ struct StatsView: View {
     
     var body: some View {
         VStack {
-            Text("swiftscrobble version " + program_version)
+            HStack {
+                Link("swiftscrobble", destination: URL(string: "https://github.com/lambdan/swiftscrobble")!)
+                Text(program_version)
+            }.padding()
+            
             Text(String(songs_scrobbled) + " scrobbles since " + songs_scrobbled_date).padding()
             
-            HStack{
-                Text("Songs in cache: " + String(cache_count)).padding()
+            VStack{
+                Text("Songs in cache: " + String(cache_count))
                 Button("Process Cache Now") {
-                        ProcessCache()
-                }.disabled(cache_count == 0).padding()
-            }
+                    ProcessCache()
+                }.disabled(cache_count == 0)
+            }.padding()
+            
+            Button("View Log") {
+                OpenMsgsWindow()
+            }.disabled(msgs_count == 0).padding()
+            
             VStack {
-                Button("View Log") {
-                    OpenMsgsWindow()
-                }.disabled(msgs_count == 0)
                 Button("⚠️ Reset Everything & Quit ⚠️") {
                     self.reset_clicked = reset_button_times_clicked
                     resetDefaults()
                 }
-                if reset_clicked > 0 {
-                    Text("click " + String(10-reset_clicked) + " more time(s)")
-                }
                 
+                if reset_clicked > 0 {
+                    Text("Click " + String(10-reset_clicked) + " more time(s)...")
+                }
             }.padding()
+            
+            
         }
         .onReceive(pub) {_ in
             songs_scrobbled = preferences.integer(forKey: "songs scrobbled")
