@@ -269,7 +269,7 @@ struct MsgsView: View {
         VStack {
             //Text("Log Entries: " + String(self.msg_count)).padding()
             List {
-                ForEach(self.messages!, id: \.self) { string in
+                ForEach(self.messages!.reversed(), id: \.self) { string in
                     Text(string)
                 }
             }.padding()
