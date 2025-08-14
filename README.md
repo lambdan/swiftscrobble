@@ -1,3 +1,7 @@
+# Not maintained anymore
+
+If you are a macOS or iOS user wanting to listen to your own FLAC files, and be able to scrobble them, I recommend setting up [Navidrome](https://www.navidrome.org/)
+
 # swiftscrobble
 Universal Last.fm scrobbler for macOS that lives in your menu bar.
 
